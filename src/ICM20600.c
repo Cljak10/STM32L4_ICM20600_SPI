@@ -31,7 +31,7 @@ const uint8_t DUMMY_BYTE = 0x00;
 
 
 
-// MPU9250 registers
+// ICM20600 registers
 const uint8_t ACCEL_OUT = 0x3B;
 const uint8_t GYRO_OUT = 0x43;
 const uint8_t TEMP_OUT = 0x41;
@@ -131,21 +131,21 @@ void ICM20600_sleep(bool value) // CLAES HACK!
   }
 }
 
-static inline void MPU9250_Activate()
+static inline void ICM20600_Activate()
 {
-	//MPU9250_OnActivate();
-	HAL_GPIO_WritePin(MPU9250_CS_GPIO, MPU9250_CS_PIN, GPIO_PIN_RESET);
+	//ICM20600_OnActivate();
+	HAL_GPIO_WritePin(ICM20600_CS_GPIO, ICM20600_CS_PIN, GPIO_PIN_RESET);
 }
 
-static inline void MPU9250_Deactivate()
+static inline void ICM20600_Deactivate()
 {
-	HAL_GPIO_WritePin(MPU9250_CS_GPIO, MPU9250_CS_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(ICM20600_CS_GPIO, ICM20600_CS_PIN, GPIO_PIN_SET);
 }
 
 uint8_t SPIx_WriteRead(uint8_t Byte)
 {
 	uint8_t receivedbyte = 0;
-	if(HAL_SPI_TransmitReceive(&MPU9250_SPI,(uint8_t*) &Byte,(uint8_t*) &receivedbyte,1,0x1000)!=HAL_OK)
+	if(HAL_SPI_TransmitReceive(&ICM20600_SPI,(uint8_t*) &Byte,(uint8_t*) &receivedbyte,1,0x1000)!=HAL_OK)
 	{
 		return -1;
 	}
@@ -155,9 +155,9 @@ uint8_t SPIx_WriteRead(uint8_t Byte)
 	return receivedbyte;
 }
 
-void MPU_SPI_Write (uint8_t *pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite)
+void ICM20600_SPI_Write (uint8_t *pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite)
 {
-	MPU9250_Activate();
+	ICM20600_Activate();
 	SPIx_WriteRead(WriteAddr);
 	while(NumByteToWrite>=0x01)
 	{
@@ -165,32 +165,32 @@ void MPU_SPI_Write (uint8_t *pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite
 		NumByteToWrite--;
 		pBuffer++;
 	}
-	MPU9250_Deactivate();
+	ICM20600_Deactivate();
 }
 
-void MPU_SPI_Read(uint8_t *pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
+void ICM20600_SPI_Read(uint8_t *pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
 {
-	MPU9250_Activate();
+	ICM20600_Activate();
 	uint8_t data = ReadAddr | READWRITE_CMD;
-	HAL_SPI_Transmit(&MPU9250_SPI, &data, 1, HAL_MAX_DELAY);
-	HAL_SPI_Receive(&MPU9250_SPI, pBuffer, NumByteToRead, HAL_MAX_DELAY);
-	MPU9250_Deactivate();
+	HAL_SPI_Transmit(&ICM20600_SPI, &data, 1, HAL_MAX_DELAY);
+	HAL_SPI_Receive(&ICM20600_SPI, pBuffer, NumByteToRead, HAL_MAX_DELAY);
+	ICM20600_Deactivate();
 }
 
-/* writes a byte to MPU9250 register given a register address and data */
+/* writes a byte to ICM20600 register given a register address and data */
 void ICM20600_writeRegister(uint8_t subAddress, uint8_t data)
 {
-	MPU_SPI_Write(&data, subAddress, 1);
+	ICM20600_SPI_Write(&data, subAddress, 1);
 	HAL_Delay(1);
 }
 
-/* reads registers from MPU9250 given a starting register address, number of bytes, and a pointer to store data */
+/* reads registers from ICM20600 given a starting register address, number of bytes, and a pointer to store data */
 void readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
-	MPU_SPI_Read(dest, subAddress, count);
+	ICM20600_SPI_Read(dest, subAddress, count);
 }
 
 
-/* gets the MPU9250 WHO_AM_I register value, expected to be 0x71 */
+/* gets the ICM20600 WHO_AM_I register value, expected to be 0x71 */
 static uint8_t whoAmI(){
 	// read the WHO AM I register
 	readRegisters(WHO_AM_I,1,_accel_buffer);
@@ -200,19 +200,19 @@ static uint8_t whoAmI(){
 }
 
 
-/* starts communication with the MPU-9250 */
+/* starts communication with the ICM20600 */
 uint8_t ICM20600_Init()
 {
-	// reset the MPU9250
+	// reset the ICM20600
 	ICM20600_writeRegister(PWR_MGMNT_1,PWR_RESET);
 	HAL_Delay(1);
 
 	// select clock source to gyro
 	ICM20600_writeRegister(PWR_MGMNT_1, CLOCK_SEL_PLL);
 
-	// reset the MPU9250
+	// reset the ICM20600
 	ICM20600_writeRegister(PWR_MGMNT_1,PWR_RESET);
-	// wait for MPU-9250 to come back up
+	// wait for ICM20600 to come back up
 	HAL_Delay(1);
 
 	// select clock source to gyro
@@ -252,16 +252,16 @@ void ICM20600_setup_shotCounter_settings()
 {
 	// Overall power settings:
 	ICM20600_setPowerMode(ICM_6AXIS_LOW_POWER);
-	//MPU9250_SetSampleRateDivider(LP_ACCEL_ODR_125HZ); // Sample rate div only works in Low Power mode
-	MPU9250_SetSampleRateDivider(LP_ACCEL_ODR_250HZ); // Sample rate div only works in Low Power mode
+	//ICM20600_SetSampleRateDivider(LP_ACCEL_ODR_125HZ); // Sample rate div only works in Low Power mode
+	ICM20600_SetSampleRateDivider(LP_ACCEL_ODR_250HZ); // Sample rate div only works in Low Power mode
 
 	// Acc config:
-	MPU9250_SetAccelRange(ACCEL_FS_SEL_16G);
+	ICM20600_SetAccelRange(ACCEL_FS_SEL_16G);
 	ICM20600_setAccAverageSample(ACC_AVERAGE_4);
 	ICM20600_setAccOutputDataRate(ACC_RATE_1K_BW_420); // Seems appropriate for ShotCounter
 
 	// Gyro config:
-	MPU9250_SetGyroRange(GYRO_FS_SEL_2000DPS);
+	ICM20600_SetGyroRange(GYRO_FS_SEL_2000DPS);
 	ICM20600_setGyroAverageSample(GYRO_AVERAGE_1);
 	ICM20600_setGyroOutputDataRate(GYRO_RATE_1K_BW_176); // Seems appropriate for ShotCounter
 
@@ -332,13 +332,13 @@ void ICM20600_setPowerMode(ICM20600_Power_Type_t mode)
 }
 
 /* sets the accelerometer full scale range to values other than default */
-void MPU9250_SetAccelRange(AccelRange range)
+void ICM20600_SetAccelRange(AccelRange range)
 {
 	ICM20600_writeRegister(ACCEL_CONFIG, range);
 }
 
 /* sets the gyro full scale range to values other than default */
-void MPU9250_SetGyroRange(GyroRange range)
+void ICM20600_SetGyroRange(GyroRange range)
 {
 	//writeRegister(GYRO_CONFIG, range);
 
@@ -539,14 +539,14 @@ void ICM20600_setGyroAverageSample(Gyro_avg_sample_type_t sample) {
 
 
 /* sets the DLPF bandwidth to values other than default */
-void MPU9250_SetDLPFBandwidth(DLPFBandwidth bandwidth)
+void ICM20600_SetDLPFBandwidth(DLPFBandwidth bandwidth)
 {
 	ICM20600_writeRegister(ACCEL_CONFIG2,bandwidth);
 	ICM20600_writeRegister(CONFIG,bandwidth);
 }
 
 /* sets the sample rate divider to values other than default */
-void MPU9250_SetSampleRateDivider(uint8_t srd)
+void ICM20600_SetSampleRateDivider(uint8_t srd)
 {
 	ICM20600_writeRegister(SMPDIV, srd);
 }
@@ -555,23 +555,23 @@ extern dataLog_t IMU;
 /* read the data, each argiment should point to a array for x, y, and x */
 void ICM20600_GetData()
 {
-	//readRegisters(ACCEL_OUT, 14, _accel_buffer); 	// grab the data from the MPU9250
+	//readRegisters(ACCEL_OUT, 14, _accel_buffer); 	// grab the data from the ICM20600
 
 	uint8_t data = ACCEL_OUT | READWRITE_CMD;
-	MPU9250_Activate();
+	ICM20600_Activate();
 
-	HAL_SPI_Transmit(&MPU9250_SPI, &data, 1, HAL_MAX_DELAY);
-	//HAL_SPI_Transmit_DMA(&MPU9250_SPI, &data, 2);					// DMA
+	HAL_SPI_Transmit(&ICM20600_SPI, &data, 1, HAL_MAX_DELAY);
+	//HAL_SPI_Transmit_DMA(&ICM20600_SPI, &data, 2);					// DMA
 
 #ifdef IMU_DMA
 	// DMA RECEIVE MODE:
-	HAL_SPI_Receive_DMA(&MPU9250_SPI, _accel_buffer, 14);					// DMA
-	//while (&MPU9250_SPI.State != HAL_SPI_STATE_READY) {} // Wait until SPI is done doing stuff
+	HAL_SPI_Receive_DMA(&ICM20600_SPI, _accel_buffer, 14);					// DMA
+	//while (&ICM20600_SPI.State != HAL_SPI_STATE_READY) {} // Wait until SPI is done doing stuff
 
 
 #else
 	// NORMAL SPI RECEIVE MODE:
-	HAL_SPI_Receive(&MPU9250_SPI, _accel_buffer, GET_DATA_SIZE, HAL_MAX_DELAY);
+	HAL_SPI_Receive(&ICM20600_SPI, _accel_buffer, GET_DATA_SIZE, HAL_MAX_DELAY);
 
 	// Combine into 16 bit values:
 	_axcounts = (((int16_t)_accel_buffer[0]) << 8) | _accel_buffer[1];
@@ -582,13 +582,13 @@ void ICM20600_GetData()
 	_gzcounts = (((int16_t)_accel_buffer[12]) << 8) | _accel_buffer[13];
 
 	// Convert to float:
-	IMU.ax = (float)(_aycounts * _accelScale);   // Claes hack to reduce computations
-	IMU.ay = (float)(_axcounts * _accelScale);   // Claes hack to reduce computations
-	IMU.az = (float)(_azcounts * _accelScale * -1);   // Claes hack to reduce computations
-	IMU.gx = (float)(_gycounts * _gyroScale); // Claes hack to reduce computations
-	IMU.gy = (float)(_gxcounts * _gyroScale); // Claes hack to reduce computations
-	IMU.gz = (float)(_gzcounts * _gyroScale * -1); // Claes hack to reduce computations
-	MPU9250_Deactivate();
+	IMU.ax = (float)(_aycounts * _accelScale);
+	IMU.ay = (float)(_axcounts * _accelScale);
+	IMU.az = (float)(_azcounts * _accelScale * -1);
+	IMU.gx = (float)(_gycounts * _gyroScale);
+	IMU.gy = (float)(_gxcounts * _gyroScale);
+	IMU.gz = (float)(_gzcounts * _gyroScale * -1);
+	ICM20600_Deactivate();
 #endif
 }
 
@@ -596,7 +596,7 @@ void ICM20600_GetData()
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 #ifdef IMU_DMA
-	MPU9250_Deactivate();
+	ICM20600_Deactivate();
 
 	// Combine into 16 bit values:
 	_axcounts = (((int16_t)_accel_buffer[0]) << 8) | _accel_buffer[1];
@@ -607,12 +607,12 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 	_gzcounts = (((int16_t)_accel_buffer[12]) << 8) | _accel_buffer[13];
 
 	// Convert to float:
-	IMU.ax = (float)(_aycounts * _accelScale);   // Claes hack to reduce computations
-	IMU.ay = (float)(_axcounts * _accelScale);   // Claes hack to reduce computations
-	IMU.az = (float)(_azcounts * _accelScale * -1);   // Claes hack to reduce computations
-	IMU.gx = (float)(_gycounts * _gyroScale); // Claes hack to reduce computations
-	IMU.gy = (float)(_gxcounts * _gyroScale); // Claes hack to reduce computations
-	IMU.gz = (float)(_gzcounts * _gyroScale * -1); // Claes hack to reduce computations
+	IMU.ax = (float)(_aycounts * _accelScale);
+	IMU.ay = (float)(_axcounts * _accelScale);
+	IMU.az = (float)(_azcounts * _accelScale * -1);
+	IMU.gx = (float)(_gycounts * _gyroScale);
+	IMU.gy = (float)(_gxcounts * _gyroScale);
+	IMU.gz = (float)(_gzcounts * _gyroScale * -1);
 #endif
 
 }

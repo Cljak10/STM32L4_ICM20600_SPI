@@ -17,6 +17,19 @@ extern "C" {
 #include "stm32l431xx.h"
 #include "stm32l4xx_hal_spi.h"
 
+
+
+// CONFIG:
+// Define this to use the DMA for data transfers:
+//#define IMU_DMA
+
+// Define your SPI bus and pins here:
+extern SPI_HandleTypeDef hspi3;
+#define ICM20600_SPI			hspi3
+#define	ICM20600_CS_GPIO		IMU_CS_GPIO_Port
+#define	ICM20600_CS_PIN		IMU_CS_Pin
+
+
 typedef struct dataLog_t {
 	float ax, ay, az, ax_prev;
 	float gx, gy, gz;
@@ -28,17 +41,7 @@ typedef struct dataLog_t {
 	float sideVectorChange;
 } dataLog_t;
 
-
-// CONFIG:
-extern SPI_HandleTypeDef hspi3;
-#define MPU9250_SPI			hspi3
-#define	MPU9250_CS_GPIO		IMU_CS_GPIO_Port
-#define	MPU9250_CS_PIN		IMU_CS_Pin
-
-
-
-
-int map(int x, int in_min, int in_max, int out_min, int out_max);
+int map(int x, int in_min, int in_max, int out_min, int out_max); // Helper function
 
 // Averaging filter settings for Low Power Accelerometer mode
 typedef enum acc_averaging_sample_type_t {
@@ -158,13 +161,13 @@ void ICM20600_setAccAverageSample(Acc_avg_sample_type_t sample);
 void ICM20600_setGyroAverageSample(Gyro_avg_sample_type_t sample);
 
 /* sets the sample rate divider to values other than default */
-void MPU9250_SetSampleRateDivider(uint8_t srd);
+void ICM20600_SetSampleRateDivider(uint8_t srd);
 /* sets the DLPF bandwidth to values other than default */
-void MPU9250_SetDLPFBandwidth(DLPFBandwidth bandwidth);
+void ICM20600_SetDLPFBandwidth(DLPFBandwidth bandwidth);
 /* sets the gyro full scale range to values other than default */
-void MPU9250_SetGyroRange(GyroRange range);
+void ICM20600_SetGyroRange(GyroRange range);
 /* sets the accelerometer full scale range to values other than default */
-void MPU9250_SetAccelRange(AccelRange range);
+void ICM20600_SetAccelRange(AccelRange range);
 
 void calculate_orientation();
 
