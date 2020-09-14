@@ -1,8 +1,8 @@
 /*
- * ADXL377.c
+ * ICM20600.c
  *
  *  Created on: Aug 19, 2020
- *      Author: Claes
+ *      Author: Claes Christian Jakobsen
  */
 
 #include "ICM20600.h"
@@ -12,8 +12,8 @@ int map(int x, int in_min, int in_max, int out_min, int out_max)
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-const float G = 9.807f;
-const float _d2r = 3.14159265359f / 180.0f;
+const float G = 9.807f; // Gravity constant
+const float _d2r = 3.14159265359f / 180.0f; // Degrees to radians constant
 
 //extern dataLog_t* IMU;
 
@@ -115,13 +115,12 @@ void ICM20600_disableDataReadyInterrupt() {
   ICM20600_writeRegister(INT_ENABLE,INT_DISABLE);// disable interrupt
 }
 
-void ICM20600_sleep(bool value) // CLAES HACK!
+void ICM20600_sleep(bool value)
 {
   if (value == true)
   {
-    //writeRegister(PWR_MGMNT_1,0x40); // Still uses ~320mA when only using this for sleep
-    ICM20600_writeRegister(PWR_MGMNT_2, 0b00111111); // Disables all axes on acc and gyro individually, just in case.
-    ICM20600_writeRegister(PWR_MGMNT_1, 0b01111111);
+    ICM20600_writeRegister(PWR_MGMNT_2, 0b00111111); // Disables all axes on acc and gyro individually, just in case. (Not necessary)
+    ICM20600_writeRegister(PWR_MGMNT_1, 0b01111111); // Set sleep bit etc. in power register 1
 
   }
   else
@@ -219,7 +218,7 @@ uint8_t ICM20600_Init()
 	ICM20600_writeRegister(PWR_MGMNT_1,CLOCK_SEL_PLL);
 
 	uint8_t who = whoAmI();
-	if(who != 0x11) 	// CLAES: 0x11 for ICM20600!
+	if(who != 0x11) 	// 0x11 for ICM20600!
 		return 1;
 
 	// enable accelerometer and gyro
@@ -323,9 +322,6 @@ void ICM20600_setPowerMode(ICM20600_Power_Type_t mode)
         default:
             break;
     }
-    // I2Cdev::writeByte(_addr, ICM20600_PWR_MGMT_1, data_pwr1); // Claes: original
-    // I2Cdev::writeByte(_addr, ICM20600_PWR_MGMT_2, data_pwr2); // Claes: original
-    // I2Cdev::writeByte(_addr, ICM20600_GYRO_LP_MODE_CFG, data_gyro_lp); // Claes: orignal
     ICM20600_writeRegister(PWR_MGMNT_1,data_pwr1);
     ICM20600_writeRegister(PWR_MGMNT_2,data_pwr2);
     ICM20600_writeRegister(LP_ACCEL_ODR,data_gyro_lp);
@@ -371,7 +367,6 @@ void ICM20600_SetGyroRange(GyroRange range)
 	  _gyroRange = range;
 }
 
-// HACK BY CLAES:
 // Adjusted from I2C FROM THIS LIBRARY: https://github.com/Seeed-Studio/Seeed_ICM20600_AK09918/blob/master/ICM20600.cpp
 void ICM20600_setAccOutputDataRate(Acc_LowNoise_ODR odr) {
     uint8_t data;
@@ -419,7 +414,7 @@ void ICM20600_setAccOutputDataRate(Acc_LowNoise_ODR odr) {
 }
 
 
-// Claes hack from I2C lib
+// Hack from I2C lib:
 void ICM20600_setGyroOutputDataRate(Gyro_LowNoise_ODR odr) {
     uint8_t data;
     readRegisters(CONFIG, 1, _accel_buffer);
@@ -456,8 +451,8 @@ void ICM20600_setGyroOutputDataRate(Gyro_LowNoise_ODR odr) {
 }
 
 
-// Claes hack from I2C lib
-// for low power mode only
+// Hack from I2C lib
+// (for low power mode only)
 void ICM20600_setAccAverageSample(Acc_avg_sample_type_t sample) {
     uint8_t data = 0;
     readRegisters(ACCEL_CONFIG2, 1, _accel_buffer);
@@ -484,12 +479,11 @@ void ICM20600_setAccAverageSample(Acc_avg_sample_type_t sample) {
         default:
             break;
     }
-    // I2Cdev::writeByte(_addr, ICM20600_ACCEL_CONFIG2, data); // Claes: original
     ICM20600_writeRegister(ACCEL_CONFIG2, data);
 }
 
-// CLaes hack from I2C lib
-// for low power mode only
+// Hack from I2C lib
+// (for low power mode only)
 void ICM20600_setGyroAverageSample(Gyro_avg_sample_type_t sample) {
     uint8_t data = 0;
     readRegisters(LP_ACCEL_ODR, 1, _accel_buffer);
