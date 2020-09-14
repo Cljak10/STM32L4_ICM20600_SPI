@@ -30,16 +30,6 @@ extern SPI_HandleTypeDef hspi3;
 #define	ICM20600_CS_PIN		IMU_CS_Pin
 
 
-typedef struct dataLog_t {
-	float ax, ay, az, ax_prev;
-	float gx, gy, gz;
-	float gx_offset, gy_offset, gz_offset;
-	float roll;
-	float rollPrev;
-	float upVector, sideVector, forwardVector;
-	float totalGyro;
-	float sideVectorChange;
-} dataLog_t;
 
 int map(int x, int in_min, int in_max, int out_min, int out_max); // Helper function
 
