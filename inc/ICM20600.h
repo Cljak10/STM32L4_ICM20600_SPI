@@ -147,6 +147,8 @@ void ICM20600_SetDLPFBandwidth(DLPFBandwidth bandwidth); //sets the DLPF bandwid
 void ICM20600_SetGyroRange(GyroRange range); // sets the gyro full scale range to values other than default
 void ICM20600_SetAccelRange(AccelRange range); // sets the accelerometer full scale range to values other than default
 
+void ICM20600_start_receiving_DMA();
+
 #ifdef __cplusplus
 }
 #endif

@@ -554,17 +554,17 @@ void ICM20600_GetData()
 	uint8_t data = ACCEL_OUT | READWRITE_CMD;
 	ICM20600_Activate();
 
-	HAL_SPI_Transmit(&ICM20600_SPI, &data, 1, HAL_MAX_DELAY);
-	//HAL_SPI_Transmit_DMA(&ICM20600_SPI, &data, 2);					// DMA
 
 #ifdef IMU_DMA
-	// DMA RECEIVE MODE:
-	HAL_SPI_Receive_DMA(&ICM20600_SPI, _accel_buffer, 14);					// DMA
-	//while (&ICM20600_SPI.State != HAL_SPI_STATE_READY) {} // Wait until SPI is done doing stuff
+	HAL_SPI_Transmit(&ICM20600_SPI, &data, 1, HAL_MAX_DELAY);
+	//HAL_SPI_Transmit_DMA(&ICM20600_SPI, &data, 1);					// DMA
+	HAL_SPI_Receive_DMA(&ICM20600_SPI, _accel_buffer, 14); // Start the receiving of IMU data
+
 
 
 #else
 	// NORMAL SPI RECEIVE MODE:
+	HAL_SPI_Transmit(&ICM20600_SPI, &data, 1, HAL_MAX_DELAY);
 	HAL_SPI_Receive(&ICM20600_SPI, _accel_buffer, GET_DATA_SIZE, HAL_MAX_DELAY);
 
 	// Combine into 16 bit values:
@@ -586,32 +586,41 @@ void ICM20600_GetData()
 #endif
 }
 
+#ifdef IMU_DMA
+
+void ICM20600_start_receiving_DMA()
+{
+	//printf("h\n");
+	HAL_SPI_Receive_DMA(&ICM20600_SPI, _accel_buffer, 14); // Start the receiving of IMU data
+}
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-#ifdef IMU_DMA
-	ICM20600_Deactivate();
 
-	// Combine into 16 bit values:
-	_axcounts = (((int16_t)_accel_buffer[0]) << 8) | _accel_buffer[1];
-	_aycounts = (((int16_t)_accel_buffer[2]) << 8) | _accel_buffer[3];
-	_azcounts = (((int16_t)_accel_buffer[4]) << 8) | _accel_buffer[5];
-	_gxcounts = (((int16_t)_accel_buffer[8]) << 8) | _accel_buffer[9];
-	_gycounts = (((int16_t)_accel_buffer[10]) << 8) | _accel_buffer[11];
-	_gzcounts = (((int16_t)_accel_buffer[12]) << 8) | _accel_buffer[13];
+	if (hspi->Instance == SPI3) {
 
-	// Convert to float:
-	IMU.ax = (float)(_aycounts * _accelScale);
-	IMU.ay = (float)(_axcounts * _accelScale);
-	IMU.az = (float)(_azcounts * _accelScale * -1);
-	IMU.gx = (float)(_gycounts * _gyroScale);
-	IMU.gy = (float)(_gxcounts * _gyroScale);
-	IMU.gz = (float)(_gzcounts * _gyroScale * -1);
-#endif
+		ICM20600_Deactivate();
 
+		// Combine into 16 bit values:
+		_axcounts = (((int16_t) _accel_buffer[0]) << 8) | _accel_buffer[1];
+		_aycounts = (((int16_t) _accel_buffer[2]) << 8) | _accel_buffer[3];
+		_azcounts = (((int16_t) _accel_buffer[4]) << 8) | _accel_buffer[5];
+		_gxcounts = (((int16_t) _accel_buffer[8]) << 8) | _accel_buffer[9];
+		_gycounts = (((int16_t) _accel_buffer[10]) << 8) | _accel_buffer[11];
+		_gzcounts = (((int16_t) _accel_buffer[12]) << 8) | _accel_buffer[13];
+
+		// Convert to float:
+		IMU.ax = (float) (_aycounts * _accelScale);
+		IMU.ay = (float) (_axcounts * _accelScale);
+		IMU.az = (float) (_azcounts * _accelScale * -1);
+		IMU.gx = (float) (_gycounts * _gyroScale);
+		IMU.gy = (float) (_gxcounts * _gyroScale);
+		IMU.gz = (float) (_gzcounts * _gyroScale * -1);
+	}
 }
 
 void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 {
 	//printf("e");
 }
+#endif
