@@ -1,9 +1,8 @@
 /*
- * ADXL377.h
+ * ICM20600.h
  *
  *  Created on: Aug 19, 2020
- *      Author: Claes
- *      CUSTOM LIBRARY BY CLAES
+ *      Author: Claes Christian Jakobsen
  */
 
 #ifndef INC_ICM20600_H_
@@ -19,11 +18,11 @@ extern "C" {
 
 
 
-// CONFIG:
-// Define this to use the DMA for data transfers:
-//#define IMU_DMA
+// USER CONFIGURATIONS:
 
-// Define your SPI bus and pins here:
+// **** Define this to use the DMA for data transfers: ****
+//#define IMU_DMA
+// **** Define your SPI bus and pins here: ****
 extern SPI_HandleTypeDef hspi3;
 #define ICM20600_SPI			hspi3
 #define	ICM20600_CS_GPIO		IMU_CS_GPIO_Port
@@ -63,7 +62,6 @@ typedef enum gyro_averaging_sample_type_t {
   GYRO_AVERAGE_128,
 } Gyro_avg_sample_type_t;
 
-// CLAES HACK:
 // Gyroscope output data rate
 typedef enum gyro_lownoise_odr_type_t
 {
@@ -76,7 +74,7 @@ typedef enum gyro_lownoise_odr_type_t
   GYRO_RATE_1K_BW_10,
   GYRO_RATE_1K_BW_5,
 } Gyro_LowNoise_ODR;
-// CLAES HACK
+
 // Accelerometer output data rate
 typedef enum acc_lownoise_odr_type_t
 {
@@ -90,7 +88,6 @@ typedef enum acc_lownoise_odr_type_t
   ACC_RATE_1K_BW_5,
 } Acc_LowNoise_ODR;
 
-// CLAES HACK
 // ICM20600 power mode
 typedef enum icm20600_power_type_t
 {
@@ -128,18 +125,19 @@ typedef enum DLPFBandwidth_ {
 } DLPFBandwidth;
 
 
+// Output data rates in low power mode. For sampleRateDivider
 #define	LP_ACCEL_ODR_4HZ 		255
 #define	LP_ACCEL_ODR_8HZ 		127
-#define	LP_ACCEL_ODR_10HZ 	99
+#define	LP_ACCEL_ODR_10HZ 		99
 #define	LP_ACCEL_ODR_16HZ		63
 #define	LP_ACCEL_ODR_31HZ		31
 #define	LP_ACCEL_ODR_50HZ		19
 #define	LP_ACCEL_ODR_63HZ		15
-#define	LP_ACCEL_ODR_100HZ	9
-#define	LP_ACCEL_ODR_125HZ	7
-#define	LP_ACCEL_ODR_200HZ	4
-#define	LP_ACCEL_ODR_250HZ	3
-#define	LP_ACCEL_ODR_500HZ	0 // should be 1 according to datasheet?
+#define	LP_ACCEL_ODR_100HZ		9
+#define	LP_ACCEL_ODR_125HZ		7
+#define	LP_ACCEL_ODR_200HZ		4
+#define	LP_ACCEL_ODR_250HZ		3
+#define	LP_ACCEL_ODR_500HZ		1 // should be 1 according to datasheet. But 0 works better?
 
 
 
@@ -147,30 +145,17 @@ uint8_t ICM20600_Init();
 void ICM20600_setup_shotCounter_settings();
 /* read the data, each argument should point to a array for x, y, and x */
 void ICM20600_GetData();
-
 void ICM20600_sleep(bool value);
-
 void ICM20600_setPowerMode(ICM20600_Power_Type_t mode);
-
 void ICM20600_setAccOutputDataRate(Acc_LowNoise_ODR odr);
-
 void ICM20600_setGyroOutputDataRate(Gyro_LowNoise_ODR odr);
-
 void ICM20600_setAccAverageSample(Acc_avg_sample_type_t sample);
-
 void ICM20600_setGyroAverageSample(Gyro_avg_sample_type_t sample);
 
-/* sets the sample rate divider to values other than default */
-void ICM20600_SetSampleRateDivider(uint8_t srd);
-/* sets the DLPF bandwidth to values other than default */
-void ICM20600_SetDLPFBandwidth(DLPFBandwidth bandwidth);
-/* sets the gyro full scale range to values other than default */
-void ICM20600_SetGyroRange(GyroRange range);
-/* sets the accelerometer full scale range to values other than default */
-void ICM20600_SetAccelRange(AccelRange range);
-
-void calculate_orientation();
-
+void ICM20600_SetSampleRateDivider(uint8_t srd); // sets the sample rate divider to values other than default
+void ICM20600_SetDLPFBandwidth(DLPFBandwidth bandwidth); //sets the DLPF bandwidth to values other than default
+void ICM20600_SetGyroRange(GyroRange range); // sets the gyro full scale range to values other than default
+void ICM20600_SetAccelRange(AccelRange range); // sets the accelerometer full scale range to values other than default
 
 #ifdef __cplusplus
 }
