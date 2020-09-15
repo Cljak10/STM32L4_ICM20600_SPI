@@ -555,7 +555,7 @@ void ICM20600_GetData()
 	ICM20600_Activate();
 
 
-#ifdef IMU_DMA
+#if IMU_DMA
 	HAL_SPI_Transmit(&ICM20600_SPI, &data, 1, HAL_MAX_DELAY);
 	//HAL_SPI_Transmit_DMA(&ICM20600_SPI, &data, 1);					// DMA
 	HAL_SPI_Receive_DMA(&ICM20600_SPI, _accel_buffer, 14); // Start the receiving of IMU data
@@ -586,7 +586,7 @@ void ICM20600_GetData()
 #endif
 }
 
-#ifdef IMU_DMA
+#if IMU_DMA
 
 void ICM20600_start_receiving_DMA()
 {
